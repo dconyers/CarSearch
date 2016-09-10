@@ -1,0 +1,9 @@
+{
+  "name": "car-search",
+  "version": "0.0.0",
+  "description": "CarSearch",
+  "main": "server.js",
+  "author": {
+    "name": "dougc"
+  }
+}
