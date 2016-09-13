@@ -7,10 +7,7 @@ var cars = [];
 log4js.replaceConsole()
 
 var express = require('express');
-
 var app = express();
-
-// Configuration 
 
 // Routes 
 app.use(express.static('static_files'));
@@ -57,7 +54,6 @@ const getVinInfo = function (vin_string) {
     //VIN is a string; get last 7 digits
     var last_six = vin_string.substr(vin_string.length - 7);
     var url = 'http://www.bmwdecoder.com/decode/' + last_six;
-    console.log("vin_info URL" + url);
     getContent(url)
         .then((html) => {
             var parsed = cheerio.load(html);
@@ -88,6 +84,7 @@ const getVinInfo = function (vin_string) {
             car["soft-close"] = cheerio('td:contains("323")', carInfo).next().text();
             car["heads-up-display"] = cheerio('td:contains("610")', carInfo).next().text();
             car["speed-limit-indicator"] = cheerio('td:contains("8TH")', carInfo).next().text();
+            car["enhanced-bt"] = cheerio('td:contains("6NS")', carInfo).next().text();
 
             var missing = false;
             var score = 0;
@@ -114,13 +111,15 @@ const getVinInfo = function (vin_string) {
 
             cars.push(car);
         })
+        .catch((err) => console.error(err));
 };
 
 
 
-const getListingPage = function (offset) {
+const getListingPage = function (offset, query_string) {
     //    getContent('http://cpo.bmwusa.com/used-inventory/index.htm?start=' + offset + '&superModel=5+Series&gvModel=550i&compositeType=certified&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256')
-    getContent('http://cpo.bmwusa.com/used-inventory/index.htm?start=' + offset + '&superModel=5+Series&gvModel=550i&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256')
+    //      getContent('http://cpo.bmwusa.com/used-inventory/index.htm?start=' + offset + '&superModel=5+Series&gvModel=550i&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256')
+    getContent('http://cpo.bmwusa.com/used-inventory/index.htm?start=' + offset + query_string)
         .then((html) => {
             var parsed = cheerio.load(html);
             parsed('div.hproduct.auto.bmw').map(function (i, foo) {
@@ -145,5 +144,6 @@ const getVinInfoDelayed = function (vin_string) {
 
 
 
-getListingPage(0);
+getListingPage(0, '&superModel=5+Series&gvModel=550i&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256');
+getListingPage(0, '&superModel=5+Series&&gvModel=550i+xDrive&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256');
 // getVinInfo("D000968");
