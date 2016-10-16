@@ -65,22 +65,30 @@ const processCar = function (car) {
             score++;
         }
     }
+
     car["score"] = score;
 
 
     if (score >= high_score) {
-        logger.debug("Potential high score of " + score + " by vin: " + vin);
+        logger.debug("Potential high score of " + score + " by vin: " + car["vin"]);
         high_score = score;
     }
 
     if (!missing) {
-        logger.debug("Potential car: " + vin);
+        logger.debug("Potential car: " + car["vin"]);
     } else {
-        logger.debug("No luck on vin: " + vin);
+        logger.debug("No luck on vin: " + car["vin"]);
     }
 
     // Only matters if it has the following attributes:
-    if (true) {
+
+    // M3 Criteria
+    if (car["automatic"] &&
+        car["upholstery"].includes("X3SW")) {
+    //if (car["drive_assist"] &&
+    //    car["ceramic-controls"] &&
+    //    car["adaptive-drive"] &&
+    //    car["leather-dash"]) {
         cars.push(car);
         console.info("Added car to cars table: " + car["leather-dash"]);
     } else {
@@ -107,12 +115,16 @@ const getVinInfo = function (vin_string) {
             var parsed = cheerio.load(html);
             var carInfo = parsed('div.carInfo');
             var vinData = cheerio('table#vinData.table', carInfo);
+            logger.debug("before vin pull");
             var vin = cheerio('td:contains("VIN")', vinData).next().text();
+            logger.debug("after vin pull");
 
             if (!vin) {
                 logger.error("Failed to pull vin on: " + vin_string + ", retrying");
                 getVinInfoDelayed(vin_string);
                 return;
+            } else {
+                logger.debug("successfully pulled vin: " + vin);
             }
 
             var car = {};
@@ -121,25 +133,28 @@ const getVinInfo = function (vin_string) {
             car["upholstery"] = cheerio('td:contains("Upholstery")', vinData).next().text();
             car["prod-date"] = cheerio('td:contains("Prod. Date")', vinData).next().text();
 
-            car["m-sport"] = cheerio('td:contains("337")', carInfo).next().text();
+            //car["m-sport"] = cheerio('td:contains("337")', carInfo).next().text();
             car["lane-change-warn"] = cheerio('td:contains("5AG")', carInfo).next().text();
             car["drive_assist"] = cheerio('td:contains("5AS")', carInfo).next().text();
             car["sun-visor"] = cheerio('td:contains("415")', carInfo).next().text();
-            car["comfort-seats"] = cheerio('td:contains("456")', carInfo).next().text();
-            car["vent-seats"] = cheerio('td:contains("S453A")', carInfo).next().text();
-            car["ceramic-controls"] = cheerio('td:contains("4U1")', carInfo).next().text();
+            //car["comfort-seats"] = cheerio('td:contains("456")', carInfo).next().text();
+            //car["vent-seats"] = cheerio('td:contains("S453A")', carInfo).next().text();
+            //car["ceramic-controls"] = cheerio('td:contains("4U1")', carInfo).next().text();
             car["adaptive-drive"] = cheerio('td:contains("2VA")', carInfo).next().text();
             car["leather-dash"] = cheerio('td:contains("4M5")', carInfo).next().text();
-            car["soft-close"] = cheerio('td:contains("323")', carInfo).next().text();
+            //car["soft-close"] = cheerio('td:contains("323")', carInfo).next().text();
             car["heads-up-display"] = cheerio('td:contains("610")', carInfo).next().text();
             car["speed-limit-indicator"] = cheerio('td:contains("8TH")', carInfo).next().text();
             car["enhanced-bt"] = cheerio('td:contains("6NS")', carInfo).next().text();
-
+            car["automatic"] = cheerio('td:contains("S2MKA")', carInfo).next().text();
+            car["adaptive_led"] = cheerio('td:contains("S552A")', carInfo).next().text();
+            logger.debug("before process");
             processCar(car);
+            logger.debug("after process");
 
         })
         .catch((err) => {
-            console.error("Got Error from BMWDecoder: " + err);
+            console.error("Got Error from BMWDecoder: " + err + " for url " + url);
             getVinInfoDelayed(vin);
         });
 };
@@ -187,9 +202,11 @@ logger.debug("hello?\n");
 logger.log(JSON.stringify(cars));
 logger.debug("Woot!\n");
 
-// getListingPage(0, '&compositeType=certified&superModel=5+Series&gvModel=550i&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256');
-// getListingPage(0, '&compositeType=certified&superModel=5+Series&gvModel=550i+xDrive&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256');
+//getListingPage(0, '&compositeType=certified&superModel=5+Series&gvModel=550i&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256');
+//getListingPage(0, '&compositeType=certified&superModel=5+Series&gvModel=550i+xDrive&searchLinkText=SEARCH&showSelections=true&geoRadius=0&facetbrowse=true&year=2016-2016&year=2015-2015&year=2014-2014&showFacetCounts=true&showSubmit=true&showRadius=true&geoZip=78256');
 //getVinInfo("D095766");
 
 // M3 Search
-getListingPage(0, '&gvBodyStyle=Sedan&superModel=M+Series&gvModel=M3&compositeType=certified&geoZip=07677&geoRadius=0');
+//getListingPage(0, '&gvBodyStyle=Sedan&superModel=M+Series&gvModel=M3&compositeType=certified&geoZip=07677&geoRadius=0');
+getListingPage(0, '&superModel=M+Series&gvModel=M3&gvBodyStyle=Sedan&year=2016-2016%2C2015-2015&geoZip=78256&geoRadius=0&');
+//getVinInfo("j276133");
