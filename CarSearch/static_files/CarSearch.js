@@ -1,7 +1,7 @@
 ﻿
 $(document).ready(function () {
     
-    $.getJSON('/data.json', function (json) {
+    $.getJSON('/M3.json', function (json) {
 
         var th;
         var keys = Object.keys(json[0]);
